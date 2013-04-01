@@ -5,14 +5,13 @@ Created on 2013-3-31
 '''
 from crawler.shc.fe.const import FEConstant as const
 from crawler.shc.fe.item import SHCFEShopInfo
-from csv import DictWriter
+from crawler.shc.fe.tools import ignore_notice
 from scrapy import log
 from scrapy.http.request import Request
-from scrapy.item import Field
 from scrapy.selector import HtmlXPathSelector
 from scrapy.spider import BaseSpider
 from uuid import uuid4
-import re
+import datetime
 
 class FESpider(BaseSpider):
     
@@ -46,21 +45,64 @@ class SHCSpider(FESpider):
         
 class CarListSpider(FESpider):
     
+    @ignore_notice
     def parse(self, response):
         hxs = HtmlXPathSelector(response)
         cookies = dict(response.request.cookies)
         tr_tags = hxs.select('//table[@class="tbimg list_text_pa"]//tr')
+        current_url = response.url
+        
         for tr_tag in tr_tags:
+            
+            td_tags = tr_tag.select('td').extract()
+            if len(td_tags) == 1:
+                continue
+            
+            declare_date = None
+            try:
+                declare_date = tr_tag.select('//span[@class="c_999"]/text()').extract()[0]
+            except IndexError as ie:
+                pass
+            
+            if declare_date:
+                declare_date_str = u'2013-%s' % declare_date
+                try:
+                    declare_date = datetime.datetime.strptime(declare_date_str, '%Y-%m-%d')
+                    e_date = datetime.datetime(2013, 4, 1)
+                    s_date = datetime.datetime(2013, 3, 28)
+                    
+                    if not (s_date <= declare_date <= e_date):
+                        self.log(u"%s ignore " % declare_date_str, log.INFO)
+                        continue 
+                except ValueError:
+                    self.log(u' %s ' % declare_date_str, log.DEBUG)
+            
             url = tr_tag.select('td[1]/a/@href').extract()[0]
+            
+            if url[:url.find('58')] != current_url[:current_url.find('58')]:
+                continue
             yield Request(url, CarDetailSpider().parse
                           , cookies=cookies
                           )
-#            yield Request('http://sh.58.com/ershouche/13225351836677x.shtml', CarDetailSpider().parse
+#            yield Request('http://sz.58.com/ershouche/13237275862021x.shtml', CarDetailSpider().parse
 #                          , cookies=cookies
 #                          )
+#            break
+
+        else:
+            
+            self.log(u' add next page into schedual ', log.INFO)
+            current_domain = current_url[:current_url.find(u'/ershouche')]
+#            http://sh.58.com/ershouche/1/?selpic=1
+#                            /ershouche/1/pn2/?selpic=1
+            next_url = hxs.select('//a[@class="next"]/@href').extract()[0]
+            
+            yield Request(current_domain + next_url, CarListSpider().parse, cookies=cookies)
+            
         
 class CarDetailSpider(FESpider):
     
+    @ignore_notice
     def parse(self, response):
         info = SHCFEShopInfo()
         cookies = dict(response.request.cookies)
@@ -71,8 +113,13 @@ class CarDetailSpider(FESpider):
         city_name = city_[:city_.find(u'58')]
         info['cityname'] = city_name
         
+        continue_flag = 1
+        
+        if hxs.select('//div[@id="Notice"]').extract():
+            continue_flag = 0
+        
         contacter_phone_picture_url = hxs.select('//span[@id="t_phone"]/script/text()').extract()
-        if contacter_phone_picture_url:
+        if contacter_phone_picture_url and continue_flag:
             try:
                 contacter_phone_picture_url = contacter_phone_picture_url[0]
                 contacter_phone_picture_url = contacter_phone_picture_url.split('\'')[1]
@@ -185,6 +232,9 @@ class PersonPhoneSpider(FESpider):
         
         with open(cookies[const.FILE_NAME] + u".json", 'a') as f:
             f.write(x)
+            
+        self.log(u"fetch 1 %s , %s" % (info['cityname'], info['info_url']), log.INFO)   
+        
         
 class CustomerShopSpider(FESpider):
     
