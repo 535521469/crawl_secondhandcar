@@ -8,5 +8,11 @@ from crawler.shc.const import SHCConstant
 class FEConstant(SHCConstant):
     
     CITY_NAME = u'city_name'
+    FILE_NAME = u"file_name"
+    PIC_NAME = u"pic_dir"
+    OUTPUT_DIR = u"op_dir"
+    START_TIME = u'starttime' # relate to file dir and file name
+    CUSTOMER_FLAG = u'customer'
     
-    FILE_NAME = u"file_name" 
+    STARTDATE = u'start_date'
+    ENDDATE = u'end_date'

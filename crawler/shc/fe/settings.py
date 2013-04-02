@@ -6,5 +6,5 @@ SPIDER_MODULES = ['crawler.shc.fe.spiders']
 
 LOG_LEVEL = 'INFO'
 
-#DOWNLOAD_DELAY = 8
+DOWNLOAD_DELAY = 0.8
 
