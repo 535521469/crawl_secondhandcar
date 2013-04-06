@@ -9,6 +9,8 @@ from scrapy.item import Field
 #城市名称    标题信息    信息发布时间    价格    车型名称    联系人    联系人链接地址    联系方式图片文件名    
 #车辆颜色    行驶里程    车辆排量    变速箱    上牌时间    商户名称    商户地址    商户电话    入住时间    信息原始链接地址
 
+
+
 class SHCFEShopInfoConstant(object):
     
     cityname = u'cityname'
