@@ -5,7 +5,7 @@ Created on 2013-3-31
 '''
 from crawler.shc.fe.const import FEConstant as const
 from crawler.shc.fe.item import SHCFEShopInfo, SHCFEShopInfoConstant as voconst
-from crawler.shc.fe.tools import ignore_notice
+from crawler.shc.fe.tools import ignore_notice, check_verification_code
 from scrapy import log
 from scrapy.http.request import Request
 from scrapy.selector import HtmlXPathSelector
@@ -99,6 +99,13 @@ class FESpider(BaseSpider):
             os.makedirs(ignore_file_dir)
         return ignore_file_dir
     
+    def build_shield_file_dir(self, cookies):
+        shield_file_dir = os.sep.join([cookies[const.OUTPUT_DIR],
+                            self.build_file_name(cookies), u"Shield"])
+        if not os.path.exists(shield_file_dir):
+            os.makedirs(shield_file_dir)
+        return shield_file_dir
+    
     def build_detail_file_dir(self, cookies):
         detail_file_dir = os.sep.join([cookies[const.OUTPUT_DIR],
                             self.build_file_name(cookies), u"Detail"])
@@ -151,7 +158,8 @@ class FESpider(BaseSpider):
         if not os.path.exists(file_path):
             with open(file_path, u'w') as f:
                 dw = csv.DictWriter(f, customer_fields)
-                dw.writeheader()
+#                dw.writeheader()
+                dw.writerow(dict(zip(customer_fields, customer_fields)))
                 self.log(u'create file succeed %s' % file_path, log.INFO)
     
     def write_data(self, cookies, info):
@@ -215,6 +223,7 @@ class SHCSpider(FESpider):
         
 class CarListSpider(FESpider):
     
+    @check_verification_code
     @ignore_notice
     def parse(self, response):
         hxs = HtmlXPathSelector(response)
@@ -286,52 +295,49 @@ class CarListSpider(FESpider):
             
             url = tr_tag.select('td[1]/a/@href').extract()[0]
             
-#            if url[:url.find('58')] != current_url[:current_url.find('58')]:
-#                self.log(u' url is not the same domain ,%s , %s ' % (url, current_url), log.INFO)
-#                continue
-            
 #            break
-            
-            yield Request(u'http://bj.58.com/ershouche/13314602457610x.shtml',
-                          CarDetailSpider().parse
-                          , cookies=cookies
-                          )
-            break
-            
-#            yield Request(url, CarDetailSpider().parse
+#            yield Request(u'http://bj.58.com/ershouche/13314602457610x.shtml',
+#                          CarDetailSpider().parse
 #                          , cookies=cookies
 #                          )
+#            break
+            
+            yield Request(url, CarDetailSpider().parse
+                          , cookies=cookies
+                          )
             
 
-        else:
+        #=======================================================================
+        # catch next page
+        #=======================================================================
+#        yield Request('http://support.58.com/firewall/valid/1006787867.do?namespace=infolistweb&url=http://wh.58.com/ershouche/1/?selpic=1', CarListSpider().parse, cookies=cookies)
+        
+        current_domain = current_url[:current_url.find(u'/ershouche')]
+        try:
+            next_url = hxs.select('//a[@class="next"]/@href').extract()[0]
+            page_no = self.get_page_no_from_url(next_url)
             
-            current_domain = current_url[:current_url.find(u'/ershouche')]
-
-            try:
-                next_url = hxs.select('//a[@class="next"]/@href').extract()[0]
-                page_no = self.get_page_no_from_url(next_url)
-                
-                if int(page_no) <= end_page:
-                    msg = (u' add next page No.%s into schedual '
-                                        '%s') % (page_no, current_city)
-                    self.log(msg, log.INFO)
-                    yield Request(current_domain + next_url,
-                                  CarListSpider().parse,
-                                  cookies=cookies)
-                else:
-                    msg = (u'reach the largest page of config , '
-                                        'stop crawl %s , %s ') % (current_city, response.url) 
-                    self.log(msg, log.INFO)
-                    
-            except IndexError:
-                msg = (u"reach last page , need not to crawl"
-                        " anymore , %s , %s ") % (current_city, current_url)
+            if int(page_no) <= end_page:
+                msg = (u' add next page No.%s into schedual '
+                                    '%s') % (page_no, current_city)
+                self.log(msg, log.INFO)
+                yield Request(current_domain + next_url,
+                              CarListSpider().parse,
+                              cookies=cookies)
+            else:
+                msg = (u'reach the largest page of config , '
+                                    'stop crawl %s , %s ') % (current_city, response.url) 
                 self.log(msg, log.INFO)
                 
-#            yield Request('http://km.58.com/ershouche/1/pn95/?selpic=1', CarListSpider().parse, cookies=cookies)
+        except IndexError:
+            msg = (u"reach last page , need not to crawl"
+                    " anymore , %s , %s ") % (current_city, current_url)
+            self.log(msg, log.INFO)
+                
             
 class CarDetailSpider(FESpider):
     
+    @check_verification_code
     @ignore_notice
     def parse(self, response):
         '''
@@ -487,7 +493,7 @@ class CarDetailSpider(FESpider):
 class PersonPhoneSpider(FESpider):
 
 #    DOWNLOAD_DELAY = 0.3
-
+    
     def parse(self, response):
         
         cookies = response.request.cookies
@@ -510,6 +516,7 @@ class PersonPhoneSpider(FESpider):
         
 class CustomerShopSpider(FESpider):
     
+    @check_verification_code
     def parse(self, response):
         
         hxs = HtmlXPathSelector(response)

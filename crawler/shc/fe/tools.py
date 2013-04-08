@@ -7,11 +7,16 @@ from scrapy import log
 from scrapy.selector import HtmlXPathSelector
 import os
 from uuid import uuid4
+from scrapy.http.request import Request
+import time
 
 def ignore_notice(parse):
     
     @wraps(parse)
     def parse_simulate(self, response):
+        '''
+        the page is not exist
+        '''
         hxs = HtmlXPathSelector(response)
         notice_div = hxs.select('//div[@id="Notice"]')
         url = response.url
@@ -27,17 +32,34 @@ def ignore_notice(parse):
                 yield rs
     return parse_simulate
 
-#def ignore_(parse):
-#    @wraps(parse)
-#    def parse_simulate(self, response):
-#        hxs = HtmlXPathSelector(response)
-#        notice_div = hxs.select('//div[@id="Notice"]')
-#        url = response.url
-#        if notice_div:
-#            self.log(u' ignore crawl %s' % url, log.INFO)
-#        else:
-#            rss = parse(self, response)
-#            for rs in rss:
-#                yield rs
-#    return parse_simulate
+def check_verification_code(parse):
+    
+    @wraps(parse)
+    def parse_simulate(self, response):
+        '''
+        need you to input verification code
+        '''
+        cookies = response.request.cookies
+        hxs = HtmlXPathSelector(response)
+        verification_div = hxs.select('//div[@class="w_990"]')
+        url = response.url
+        if verification_div:
+            self.log(u'need input verification code crawl %s' % url, log.CRITICAL)
+            precede_url = url[url.index(u'url=') + 4:]
+            self.log(u'use ip proxy to request %s again ' % precede_url, log.INFO)
+            meta = {'proxy':u'http://218.108.242.108:3128'}
+            
+            shield_file_name = self.get_random_id()
+            if self.is_develop_debug(cookies):
+                self.save_body(self.build_shield_file_dir(cookies),
+                                shield_file_name + u'.html', response)
+            
+            yield Request(precede_url, self.parse, meta=meta,
+                          cookies=cookies, dont_filter=True)
+        else:
+            rss = parse(self, response)
+            for rs in rss:
+                yield rs
+                
+    return parse_simulate
         

@@ -82,7 +82,7 @@ spider_process_mapping = {}
 
 def add_task(root_scheduler):
     
-    cfg_path = os.sep.join([os.getcwd(), r'..\fetch58.cfg'])
+    cfg_path = os.sep.join([os.getcwd(), r'./fetch58.cfg'])
     configdata = ConfigFile.readconfig(cfg_path).data
     
     city_names = configdata[const.FE_CONFIG][const.FE_CONFIG_CITIES].split(u',')
@@ -109,16 +109,22 @@ def check_add_process(spider_process_mapping, processes, root_scheduler):
 #    print len(alives)
     
     if len(processes):
-        if len(alives) < 5:
+        if len(alives) < 1:
             p = processes.popleft()
             print (u'%s add one processes , crawl %s , %d cities '
-                   'waiting ') % (datetime.datetime.now(), p.city_name, len(processes) + 1)
+                   'waiting ') % (datetime.datetime.now(), p.city_name, len(processes))
             root_scheduler.enter(0, 1, p.start, ())
         root_scheduler.enter(1, 1, check_add_process
                              , (spider_process_mapping, processes, root_scheduler))
-            
+    else:
+        print (u'all process runnint ...')
+    
 if __name__ == '__main__':
     
+#    root_scheduler = scheduler(time.time, time.sleep)
+#    root_scheduler.enter(0, 0, add_task, (root_scheduler,))
+#    root_scheduler.run()
+
     root_scheduler = scheduler(time.time, time.sleep)
     root_scheduler.enter(0, 0, add_task, (root_scheduler,))
     root_scheduler.run()
