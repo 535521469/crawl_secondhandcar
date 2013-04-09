@@ -487,10 +487,19 @@ class CarDetailSpider(FESpider):
                                picture_name + u'.html', response)
             
             if contacter_url is None or contacter_url.find(u'my') > -1:
+                self.log((u'with no contacter info %s , %s , '
+                          '%s') % (self.get_current_city(cookies),
+                                   response.request.url,
+                                   contacter_phone_picture_url), log.DEBUG)
+                
                 yield Request(contacter_phone_picture_url,
                               PersonPhoneSpider().parse, cookies=cookies)
             else:
                 cookies[voconst.contacter_phone_url] = contacter_phone_picture_url
+                self.log((u'with contacter info %s ,%s,'
+                          '%s') % (self.get_current_city(cookies),
+                                   response.request.url,
+                                   contacter_url), log.DEBUG)
                 yield Request(contacter_url,
                               CustomerShopSpider().parse,
                               cookies=cookies)
