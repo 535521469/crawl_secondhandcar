@@ -46,10 +46,12 @@ def check_verification_code(parse):
         if verification_div:
             self.log(u'need input verification code crawl %s' % url, log.CRITICAL)
             precede_url = url[url.index(u'url=') + 4:]
-            self.log(u'use ip proxy to request %s again ' % precede_url, log.INFO)
+            shield_file_name = self.get_random_id()
+            
+            self.log((u'use ip proxy to request %s again , '
+                      'shield %s') % (precede_url, shield_file_name), log.INFO)
             meta = {'proxy':u'http://218.108.242.108:3128'}
             
-            shield_file_name = self.get_random_id()
             if self.is_develop_debug(cookies):
                 self.save_body(self.build_shield_file_dir(cookies),
                                 shield_file_name + u'.html', response)

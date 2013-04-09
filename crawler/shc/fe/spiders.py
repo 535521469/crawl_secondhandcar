@@ -260,6 +260,7 @@ class CarListSpider(FESpider):
             self.log(msg, log.INFO)
             tr_tags = []
         
+        url_len = 0
         for tr_tag in tr_tags:
             
             td_tags = tr_tag.select('td').extract()
@@ -301,11 +302,19 @@ class CarListSpider(FESpider):
 #                          , cookies=cookies
 #                          )
 #            break
+
             
+            url_len = url_len + 1
+            self.log((u'add detail page in list page %s '
+                      '%s ') % (self.get_current_city(cookies), url), log.DEBUG)
             yield Request(url, CarDetailSpider().parse
                           , cookies=cookies
                           )
-            
+        else:
+            self.log((u'%s list page No %s , total add detail page '
+                      '%s') % (self.get_current_city(cookies),
+                               current_page_no,
+                               url_len), log.INFO)
 
         #=======================================================================
         # catch next page

@@ -109,7 +109,7 @@ def check_add_process(spider_process_mapping, processes, root_scheduler):
 #    print len(alives)
     
     if len(processes):
-        if len(alives) < 1:
+        if len(alives) < 2:
             p = processes.popleft()
             print (u'%s add one processes , crawl %s , %d cities '
                    'waiting ') % (datetime.datetime.now(), p.city_name, len(processes))
