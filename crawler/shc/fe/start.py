@@ -5,10 +5,13 @@ Created on 2013-3-31
 '''
 from bot.configutil import ConfigFile
 from crawler.shc.fe.const import FEConstant as const
+from multiprocessing import Lock
 from scrapy.cmdline import execute
 from scrapy.settings import CrawlerSettings
 import datetime
 import os
+
+lock = Lock()
 
 class SpiderProcess(object):
     
@@ -54,6 +57,7 @@ class SpiderProcess(object):
                   , const.CONFIG_DATA:self.configdata
                   , const.START_PAGE:int(start_page)
                   , const.END_PAGE:int(end_page)
+                  , const.LOCK:lock
                   , }
         
         console_flag = self.configdata[const.LOG_CONFIG].get(const.LOG_CONSOLE_FLAG)

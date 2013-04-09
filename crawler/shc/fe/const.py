@@ -28,3 +28,6 @@ class FEConstant(FetchConstant):
 
     DEFAULT_START_PAGE =u'default_start_page'
     DEFAULT_END_PAGE =u'default_end_page'
+
+    LOCK=u'lock'
+    

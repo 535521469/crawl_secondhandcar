@@ -5,7 +5,7 @@ Created on 2013-3-20
 '''
 from bot.configutil import ConfigFile
 from crawler.shc.fe.const import FEConstant as const
-from multiprocessing import Process
+from multiprocessing import Process, Lock
 from sched import scheduler
 from scrapy.cmdline import execute
 from scrapy.settings import CrawlerSettings
@@ -13,6 +13,8 @@ import collections
 import datetime
 import os
 import time
+
+lock = Lock()
 
 class SpiderProcess(Process):
     
@@ -59,6 +61,7 @@ class SpiderProcess(Process):
                   , const.CONFIG_DATA:self.configdata
                   , const.START_PAGE:int(start_page)
                   , const.END_PAGE:int(end_page)
+                  , const.LOCK:lock
                   , }
         
         console_flag = self.configdata[const.LOG_CONFIG].get(const.LOG_CONSOLE_FLAG)
@@ -109,7 +112,7 @@ def check_add_process(spider_process_mapping, processes, root_scheduler):
 #    print len(alives)
     
     if len(processes):
-        if len(alives) < 2:
+        if len(alives) < 3:
             p = processes.popleft()
             print (u'%s add one processes , crawl %s , %d cities '
                    'waiting ') % (datetime.datetime.now(), p.city_name, len(processes))

@@ -69,6 +69,7 @@ class FESpider(BaseSpider):
                    , const.START_PAGE:self.settings.get(const.START_PAGE)
                    , const.END_PAGE:self.settings.get(const.END_PAGE)
                    , const.CONFIG_DATA:self.settings.get(const.CONFIG_DATA)
+                   , const.LOCK:self.settings.get(const.LOCK)
                    }
         return cookies
     
@@ -156,19 +157,21 @@ class FESpider(BaseSpider):
     def write_header(self, cookies):
         file_path = self.build_file_path(cookies)
         if not os.path.exists(file_path):
-            with open(file_path, u'w') as f:
-                dw = csv.DictWriter(f, customer_fields)
-#                dw.writeheader()
-                dw.writerow(dict(zip(customer_fields, customer_fields)))
-                self.log(u'create file succeed %s' % file_path, log.INFO)
+            lock = cookies[const.LOCK]
+            with lock:
+                with open(file_path, u'w') as f:
+                    dw = csv.DictWriter(f, customer_fields)
+    #                dw.writeheader()
+                    dw.writerow(dict(zip(customer_fields, customer_fields)))
+                    self.log(u'create file succeed %s' % file_path, log.INFO)
     
     def write_data(self, cookies, info):
-        file_path = self.build_file_path(cookies)
-        with open(file_path, u'a') as f:
-            dw = csv.DictWriter(f, customer_fields)
-            dw.writerow(info)
-    
-    
+        lock = cookies[const.LOCK]
+        with lock:
+            file_path = self.build_file_path(cookies)
+            with open(file_path, u'a') as f:
+                dw = csv.DictWriter(f, customer_fields)
+                dw.writerow(info)
     
     def is_customer(self, cookies):
         return unicode(cookies[const.CUSTOMER_FLAG]) == u"1"
@@ -223,6 +226,8 @@ class SHCSpider(FESpider):
         
 class CarListSpider(FESpider):
     
+    DOWNLOAD_DELAY = 5
+    
     @check_verification_code
     @ignore_notice
     def parse(self, response):
@@ -261,6 +266,7 @@ class CarListSpider(FESpider):
             tr_tags = []
         
         url_len = 0
+        
         for tr_tag in tr_tags:
             
             td_tags = tr_tag.select('td').extract()
@@ -307,6 +313,7 @@ class CarListSpider(FESpider):
             url_len = url_len + 1
             self.log((u'add detail page in list page %s '
                       '%s ') % (self.get_current_city(cookies), url), log.DEBUG)
+            
             yield Request(url, CarDetailSpider().parse
                           , cookies=cookies
                           )
