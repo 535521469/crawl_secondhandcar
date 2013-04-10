@@ -112,15 +112,18 @@ def check_add_process(spider_process_mapping, processes, root_scheduler):
 #    print len(alives)
     
     if len(processes):
-        if len(alives) < 3:
+        if len(alives) < 2:
             p = processes.popleft()
             print (u'%s add one processes , crawl %s , %d cities '
                    'waiting ') % (datetime.datetime.now(), p.city_name, len(processes))
             root_scheduler.enter(0, 1, p.start, ())
-        root_scheduler.enter(1, 1, check_add_process
+        #=======================================================================
+        # check to add process 10 seconds later
+        #=======================================================================
+        root_scheduler.enter(10, 1, check_add_process
                              , (spider_process_mapping, processes, root_scheduler))
     else:
-        print (u'all process runnint ...')
+        print (u'all process running ...')
     
 if __name__ == '__main__':
     
