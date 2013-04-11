@@ -601,9 +601,9 @@ class CustomerShopSpider(FESpider):
         if info.get(voconst.enter_time) is None:
             xps = '//div[@class="xqxinfo"]//tr'
             for tr_tag in hxs.select(xps):
-                td_val = tr_tag.select('td[1]/text()').extract()[0]
+                td_val = tr_tag.select('th[1]/text()').extract()[0]
                 if td_val == u'注册时间':
-                    info[voconst.enter_time] = tr_tag.select('td[2]/text()').extract()[0].strip()
+                    info[voconst.enter_time] = tr_tag.select('td[1]/text()').extract()[0].strip()
                     break
         
         cookies[u'customer_info'] = info
