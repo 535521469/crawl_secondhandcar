@@ -50,7 +50,7 @@ class SpiderProcess(object):
         values = {const.START_TIME:self.starttime[:-2]
                   , const.CITY_NAME:self.city_name
                   , const.CURRENT_CITY:self.city_name
-                  , const.CUSTOMER_FLAG:1
+                  , const.CUSTOMER_FLAG:feconfig.get(const.CUSTOMER_FLAG, 1)
                   , const.OUTPUT_DIR:output_dir
                   , const.STARTDATE:city_config.get(const.STARTDATE, start_date)
                   , const.ENDDATE:city_config.get(const.ENDDATE, end_date)
@@ -58,6 +58,7 @@ class SpiderProcess(object):
                   , const.START_PAGE:int(start_page)
                   , const.END_PAGE:int(end_page)
                   , const.LOCK:lock
+                  , const.DOWNLOAD_DELAY:feconfig.get(const.DOWNLOAD_DELAY, 2)
                   , }
         
         console_flag = self.configdata[const.LOG_CONFIG].get(const.LOG_CONSOLE_FLAG)

@@ -54,7 +54,7 @@ class SpiderProcess(Process):
         values = {const.START_TIME:self.starttime[:-2]
                   , const.CITY_NAME:self.city_name
                   , const.CURRENT_CITY:self.city_name
-                  , const.CUSTOMER_FLAG:1
+                  , const.CUSTOMER_FLAG:feconfig.get(const.CUSTOMER_FLAG, 1)
                   , const.OUTPUT_DIR:output_dir
                   , const.STARTDATE:city_config.get(const.STARTDATE, start_date)
                   , const.ENDDATE:city_config.get(const.ENDDATE, end_date)
@@ -62,6 +62,7 @@ class SpiderProcess(Process):
                   , const.START_PAGE:int(start_page)
                   , const.END_PAGE:int(end_page)
                   , const.LOCK:lock
+                  , const.DOWNLOAD_DELAY:feconfig.get(const.DOWNLOAD_DELAY, 2)
                   , }
         
         console_flag = self.configdata[const.LOG_CONFIG].get(const.LOG_CONSOLE_FLAG)
@@ -88,8 +89,10 @@ def add_task(root_scheduler):
     cfg_path = os.sep.join([os.getcwd(), r'./fetch58.cfg'])
     configdata = ConfigFile.readconfig(cfg_path).data
     
+    if configdata[const.PROXY_CONFIG][const.PROXY_CONFIG_SOURCE_TYPE] != u'1':
+        assert 0, u'call corleone to extend the situation'
+    
     city_names = configdata[const.FE_CONFIG][const.FE_CONFIG_CITIES].split(u',')
-#    city_names = [u'深圳', u'北京', u'福州', u'哈尔滨', u'大连', u'长沙', u'天津', u'西安', u'沈阳', u'厦门', u'广州', u'青岛', u'苏州', u'济南', u'武汉', u'杭州', u'南京', u'长春', u'成都', u'重庆', u'昆明', ]
     processes = collections.deque()
     
     starttime = datetime.datetime.now()
@@ -102,29 +105,44 @@ def add_task(root_scheduler):
         
     if len(processes):
 #        root_scheduler.enter(0, 1, processes.popleft().start, ())
-        root_scheduler.enter(1, 1, check_add_process
-                             , (spider_process_mapping, processes, root_scheduler))
+        root_scheduler.enter(1, 1, check_add_process,
+                             (spider_process_mapping, processes,
+                              root_scheduler, configdata))
             
             
-def check_add_process(spider_process_mapping, processes, root_scheduler):
+def check_add_process(spider_process_mapping, processes,
+                      root_scheduler, configdata):
     
-    alives = filter(lambda x:x , [p.is_alive() for p in spider_process_mapping.values()])
+#    alives = filter(lambda x:x , [p.is_alive() for p in spider_process_mapping.values()])
+    alives = filter(Process.is_alive, spider_process_mapping.values())
 #    print len(alives)
     
     if len(processes):
-        if len(alives) < 2:
+        pool_size = int(configdata[const.FE_CONFIG].get(const.MULTI, 1))
+        if len(alives) < pool_size:
             p = processes.popleft()
-            print (u'%s add one processes , crawl %s , %d cities '
-                   'waiting ') % (datetime.datetime.now(), p.city_name, len(processes))
+            print (u'%s enqueue %s ,pool size %d , %d cities '
+                   'waiting ') % (datetime.datetime.now(), p.city_name,
+                                  pool_size, len(processes))
             root_scheduler.enter(0, 1, p.start, ())
         #=======================================================================
         # check to add process 10 seconds later
         #=======================================================================
-        root_scheduler.enter(10, 1, check_add_process
-                             , (spider_process_mapping, processes, root_scheduler))
+            if not len(processes):
+                print (u'%s all process enqueue ...' % datetime.datetime.now())
+                
+        root_scheduler.enter(5, 1, check_add_process
+                             , (spider_process_mapping, processes,
+                                root_scheduler, configdata))
     else:
-        print (u'all process running ...')
-    
+        if len(alives) == 0:
+            print ('%s crawl finished ... ' % datetime.datetime.now())
+        else :
+            root_scheduler.enter(5, 1, check_add_process
+                                 , (spider_process_mapping, processes,
+                                    root_scheduler, configdata))
+            
+        
 if __name__ == '__main__':
     
 #    root_scheduler = scheduler(time.time, time.sleep)

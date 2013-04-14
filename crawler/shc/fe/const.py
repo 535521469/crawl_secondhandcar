@@ -23,11 +23,14 @@ class FEConstant(FetchConstant):
     STARTDATE = u'start_date'
     ENDDATE = u'end_date'
     
-    DEFAULT_START_DATE =u'default_start_date'
-    DEFAULT_END_DATE =u'default_end_date'
+    DEFAULT_START_DATE = u'default_start_date'
+    DEFAULT_END_DATE = u'default_end_date'
 
-    DEFAULT_START_PAGE =u'default_start_page'
-    DEFAULT_END_PAGE =u'default_end_page'
+    DEFAULT_START_PAGE = u'default_start_page'
+    DEFAULT_END_PAGE = u'default_end_page'
 
-    LOCK=u'lock'
+    LOCK = u'lock'
+    
+    DOWNLOAD_DELAY = u'DOWNLOAD_DELAY'
+    
     

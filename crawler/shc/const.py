@@ -19,3 +19,13 @@ class FetchConstant(object):
     DEVELOP_CONFIG_DEBUG = u"debug"
     
     LOG_CONSOLE_FLAG = u'console'
+    
+    PROXY_CONFIG = u'proxy'
+    PROXY_CONFIG_SOURCE_TYPE = u'proxysourcetype'
+    PROXY_CONFIG_IPPROXIES = u'ipproxies'
+    PROXY_CONFIG_ENABLE = u'enable'
+    
+    PROXY_CONFIG_PROXY_GENERATOR = u'proxy_generator'
+
+    MULTI=u'multi'
+    

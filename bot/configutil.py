@@ -54,7 +54,7 @@ class ConfigFile(UserDict):
         blockkey__block_dict = {}
         blockkey = None
         for line in self.fileconten_list:
-            line = line.strip()
+            line = unicode(line.strip()).replace(u'\ufeff', u'')
             if line.startswith(u"#"):
                 continue
             if line.startswith(u"[") and line.endswith(u"]"):
@@ -263,7 +263,7 @@ class ParsedKeyFormat(object):
 
 if __name__ == '__main__':
     
-    cf = ConfigFile.readconfig(r"E:\corleone\corleone_GitHub\crawl_secondhandcar\bot\fetch58.cfg")
+    cf = ConfigFile.readconfig(r"E:\corleone\corleone_GitHub\crawl_secondhandcar\fetch58.cfg")
     print cf
 
 #    a = u"{b[c]}"
