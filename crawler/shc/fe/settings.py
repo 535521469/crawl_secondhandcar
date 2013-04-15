@@ -6,4 +6,8 @@ LOG_LEVEL = 'DEBUG'
 LOG_ENCODING = u'UTF-8'
 
 
-DOWNLOADER_MIDDLEWARES = {'crawler.shc.fe.middlewares.ProxyRetryMiddleWare':450}
+DOWNLOADER_MIDDLEWARES = {'crawler.shc.fe.middlewares.ProxyRetryMiddleWare':450,
+                          'scrapy.contrib.downloadermiddleware.retry.RetryMiddleware':None
+                           }
+
+
