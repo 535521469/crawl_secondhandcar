@@ -3,5 +3,7 @@ BOT_NAME = 'SHCSpider'
 SPIDER_MODULES = ['crawler.shc.fe.spiders']
 LOG_LEVEL = 'DEBUG'
 #DOWNLOAD_DELAY = 2
-LOG_ENCODING =u'UTF-8'
+LOG_ENCODING = u'UTF-8'
 
+
+DOWNLOADER_MIDDLEWARES = {'crawler.shc.fe.middlewares.ProxyRetryMiddleWare':450}

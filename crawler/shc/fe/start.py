@@ -69,7 +69,7 @@ class SpiderProcess(object):
 
 if __name__ == '__main__':
     
-    cfg_file = r'E:\corleone\corleone_GitHub\crawl_secondhandcar\fetch58.cfg'
+    cfg_file = r'D:\github\company_ws\crawl_secondhandcar\fetch58.cfg'
     configdata = ConfigFile.readconfig(cfg_file).data
     start_time = datetime.datetime.now()
     current_city = configdata[const.FE_CONFIG][const.FE_CONFIG_CITIES].split(u',')[0]
