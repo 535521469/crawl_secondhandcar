@@ -27,5 +27,7 @@ class FetchConstant(object):
     
     PROXY_CONFIG_PROXY_GENERATOR = u'proxy_generator'
 
-    MULTI=u'multi'
+    MULTI = u'multi'
+    
+    PROXY_VALID_TIME = u"proxy_valid_time"
     
