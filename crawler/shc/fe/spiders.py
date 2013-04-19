@@ -43,8 +43,31 @@ def get_customer_fields():
           voconst.enter_time,
           voconst.info_url,
           ]
+    
+def get_personal_fields():
+    return [
+          voconst.cityname,
+          voconst.title,
+          voconst.declaretime,
+          voconst.price,
+          voconst.cartype,
+          voconst.contacter,
+          voconst.contacter_url,
+          voconst.contacter_phone_picture_name,
+          voconst.car_color,
+          voconst.road_haul,
+          voconst.displacement,
+          voconst.gearbox,
+          voconst.license_date,
+#          voconst.shop_name,
+#          voconst.shop_address,
+#          voconst.shop_phone,
+          voconst.enter_time,
+          voconst.info_url,
+          ]
 
 customer_fields = get_customer_fields()
+personal_fields = get_personal_fields()
 
 def get_customer_headers():
     return {
@@ -65,6 +88,28 @@ def get_customer_headers():
            voconst.shop_phone:u'商户电话',
            voconst.shop_address:u'商户地址',
            voconst.enter_time:u'入驻时间',
+           voconst.info_url:u'信息原始链接地址',
+           }
+    
+def get_personal_headers():
+    return {
+           voconst.cityname:u'城市名称',
+           voconst.title:u'标题信息',
+           voconst.declaretime:u'信息发布时间',
+           voconst.price:u'价格',
+           voconst.cartype:u'车型名称',
+           voconst.contacter:u'联系人',
+           voconst.contacter_url:u'联系人链接地址',
+           voconst.contacter_phone_picture_name:u'联系方式图片文件名',
+           voconst.car_color:u'车辆颜色',
+           voconst.road_haul:u'行驶里程',
+           voconst.displacement:u'车辆排量',
+           voconst.gearbox:u'变速箱',
+           voconst.license_date:u'上牌时间',
+#           voconst.shop_name:u'商户名称',
+#           voconst.shop_phone:u'商户电话',
+#           voconst.shop_address:u'商户地址',
+           voconst.enter_time:u'注册时间',
            voconst.info_url:u'信息原始链接地址',
            }
 
@@ -95,7 +140,7 @@ class FESpider(BaseSpider):
         ipproxy_generator = itertools.cycle(ipproxies.split(u','))
         
         custom_flag = self.settings[const.CUSTOMER_FLAG]
-        assert custom_flag==u'1' ,u' call corleone to extend the person type'
+#        assert custom_flag==u'1' ,u' call corleone to extend the person type'
         
         cookies = {
                     const.CUSTOMER_FLAG:custom_flag
@@ -219,19 +264,29 @@ class FESpider(BaseSpider):
             lock = cookies[const.LOCK]
             with lock:
                 with open(file_path, u'w') as f:
-                    dw = csv.DictWriter(f, customer_fields)
-    #                dw.writeheader()
-#                    dw.writerow(dict(zip(customer_fields, customer_fields)))
-                    dw.writerow(get_customer_headers())
+                    if self.is_customer(cookies):
+                        dw = csv.DictWriter(f, customer_fields)
+                        dw.writerow(get_customer_headers())
+                    else :
+                        dw = csv.DictWriter(f, personal_fields)
+                        dw.writerow(get_personal_headers())
                     self.log(u'create file succeed %s' % file_path, log.INFO)
     
     def write_data(self, cookies, info):
         lock = cookies[const.LOCK]
-        with lock:
-            file_path = self.build_file_path(cookies)
-            with open(file_path, u'a') as f:
-                dw = csv.DictWriter(f, customer_fields)
-                dw.writerow(info)
+        if self.is_customer(cookies):
+            with lock:
+                file_path = self.build_file_path(cookies)
+                with open(file_path, u'a') as f:
+                    dw = csv.DictWriter(f, customer_fields)
+                    dw.writerow(info)
+        else:
+            with lock:
+                file_path = self.build_file_path(cookies)
+                with open(file_path, u'a') as f:
+                    dw = csv.DictWriter(f, personal_fields)
+                    dw.writerow(info)
+            
     
     def is_customer(self, cookies):
         return unicode(cookies[const.CUSTOMER_FLAG]) == u"1"
@@ -551,7 +606,7 @@ class CarDetailSpider(FESpider):
                 info[voconst.info_url] = info_url 
                 picture_name = info_url.split(u'/')[-1]
                 picture_name = picture_name[:picture_name.index(u'.')]
-                info[voconst.contacter_phone_picture_name] = picture_name  
+                info[voconst.contacter_phone_picture_name] = picture_name + u".png"
                 
                 cookies[u'customer_info'] = info
             except Exception as e:
@@ -609,10 +664,10 @@ class PersonPhoneSpider(FESpider):
         
         pic_path = os.sep.join([self.build_pic_dir(cookies), filename]) 
         
-        with open(pic_path + u".gif", 'wb') as f:
+        with open(pic_path , 'wb') as f:
             f.write(response.body)
         
-        info[voconst.contacter_phone_picture_name] = filename
+#        info[voconst.contacter_phone_picture_name] = filename
         
         self.write_data(cookies, info)
         

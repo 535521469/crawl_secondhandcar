@@ -64,9 +64,6 @@ class SpiderProcess(Process):
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         
-        
-        
-        
         values = {const.START_TIME:self.starttime[:-2]
                   , const.CITY_NAME:self.city_name
                   , const.CURRENT_CITY:self.city_name
