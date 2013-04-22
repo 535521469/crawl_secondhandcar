@@ -606,7 +606,7 @@ class CarDetailSpider(FESpider):
                 info[voconst.info_url] = info_url 
                 picture_name = info_url.split(u'/')[-1]
                 picture_name = picture_name[:picture_name.index(u'.')]
-                info[voconst.contacter_phone_picture_name] = picture_name + u".png"
+                info[voconst.contacter_phone_picture_name] = picture_name + u".gif"
                 
                 cookies[u'customer_info'] = info
             except Exception as e:

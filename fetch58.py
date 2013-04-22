@@ -31,7 +31,7 @@ class SpiderProcess(Process):
         proxy_source_type_code = configdata[const.PROXY_CONFIG].get(const.PROXY_CONFIG_SOURCE_TYPE)
         if proxy_source_type_code == u'2':
             with open(u'enable_proxies.txt', u'r') as f:
-                proxies = f.readlines()
+                proxies = map(str.strip, f.readlines())
             configdata[const.PROXY_CONFIG][const.PROXY_CONFIG_IPPROXIES] = u','.join(proxies)
             configdata[const.PROXY_CONFIG][const.PROXY_CONFIG_SOURCE_TYPE] = u'1'
             
